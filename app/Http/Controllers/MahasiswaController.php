@@ -14,9 +14,24 @@ class MahasiswaController extends Controller
      */
     public function index()
     {
-        $mahasiswa = Mahasiswa::all(); // Mengambil semua isi tabel
-        $posts = Mahasiswa::orderBy('nim', 'desc')->paginate(6);
+        $mahasiswa = Mahasiswa::paginate(5); // Mengambil semua isi tabel
+        $posts = Mahasiswa::orderBy('nim', 'asc')->paginate(5);
         return view('mahasiswa.index', compact('mahasiswa'))
+            ->with('i', (request()->input('page', 1) - 1) * 5);
+    }
+
+    /**
+     * Find a listing of the searching.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword = $request->search;
+ 
+        $mahasiswa = Mahasiswa::where('nama', 'like', "%" . $keyword . "%")->paginate(5);
+        return view('mahasiswa.cari', compact('mahasiswa'))
             ->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
@@ -41,14 +56,15 @@ class MahasiswaController extends Controller
         $request->validate([
             'nim' => 'required',
             'nama' => 'required',
+            'tanggal_lahir' => 'required',
             'kelas' => 'required',
             'jurusan' => 'required',
             'no_handphone' => 'required',
+            'email' => 'required',
         ]);
 
         Mahasiswa::create($request->all());
-        
-        return redirect()->route('mahasiswa.index')
+       return redirect()->route('mahasiswa.index')
             ->with('success', 'Mahasiswa Berhasil Ditambahkan');
     }
 
@@ -88,11 +104,13 @@ class MahasiswaController extends Controller
         $request->validate([
             'nim' => 'required',
             'nama' => 'required',
+            'tanggal_lahir' => 'required',
             'kelas' => 'required',
             'jurusan' => 'required',
             'no_handphone' => 'required',
+            'email' => 'required',
         ]);
-        Mahasiswa::find($nim)->update($request->all());
+       Mahasiswa::find($nim)->update($request->all());
         return redirect()->route('mahasiswa.index')
             ->with('success', 'Mahasiswa Berhasil Diupdate');
     }
@@ -105,7 +123,7 @@ class MahasiswaController extends Controller
      */
     public function destroy($nim)
     {
-        Mahasiswa::find($nim)->delete();
+       Mahasiswa::find($nim)->delete();
         return redirect()->route('mahasiswa.index')
             ->with('success', 'Mahasiswa Berhasil Dihapus');
     }
